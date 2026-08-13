@@ -1,0 +1,661 @@
+============================================================
+  CG-0P — SISTEMA PREDICTIVO DE APUESTAS DEPORTIVAS
+  INSTRUCCIONES DE USO PASO A PASO — v1.2.7
+  Fecha: 22/02/2026
+============================================================
+
+IMPORTANTE: Este sistema aplica matemáticas y análisis estadístico
+para identificar ventajas cuantificables (edge) en mercados de
+corners, tarjetas, BTTS y goles alternativos. Si no hay ventaja
+demostrable >= 7 puntos porcentuales, el sistema dice PASS.
+Filosofía: "Si no hay edge → NO APOSTAR."
+
+------------------------------------------------------------
+ÍNDICE DE CONTENIDOS
+------------------------------------------------------------
+1. Instalación y configuración inicial
+2. Cómo iniciar la interfaz gráfica
+3. PASO A PASO: Cómo buscar picks ganadores
+   3.1 Selección del partido
+   3.2 Recopilación de datos
+   3.3 Ingreso de datos en la GUI
+   3.4 Ingreso de cuotas
+   3.5 Interpretación de resultados
+4. Los 6 módulos del sistema explicados
+5. Cómo interpretar el ChaosIndex (CI)
+6. Cómo resolver picks (registrar resultados)
+7. Cómo leer las métricas
+8. Qué son los patches y cómo funcionan
+9. Reglas operativas críticas (NO ignorar)
+10. Preguntas frecuentes
+
+
+============================================================
+1. INSTALACIÓN Y CONFIGURACIÓN INICIAL
+============================================================
+
+PASO 1.1 — Instalar Python 3.9 o superior
+   Descarga desde: https://www.python.org/downloads/
+   Verifica con: python --version
+
+PASO 1.2 — Instalar dependencias
+   Abre una terminal en la carpeta del proyecto y ejecuta:
+
+   pip install -r requirements.txt
+
+   Esto instala: requests, scipy, numpy, pandas, pillow,
+   scikit-learn, apscheduler, xgboost y otros.
+
+PASO 1.3 — Verificar instalación
+   Ejecuta en la terminal:
+   python -c "from cg0p.core.pipeline import run_pipeline; print('OK')"
+
+   Si ves "OK", la instalación fue exitosa.
+
+
+============================================================
+2. CÓMO INICIAR LA INTERFAZ GRÁFICA
+============================================================
+
+Para abrir la interfaz gráfica (GUI), ejecuta:
+
+   python gui_tkinter.py
+
+Se abrirá una ventana con 4 pestañas:
+   - "Análisis PRE" : para analizar partidos antes de jugar
+   - "Historial"    : para ver y resolver picks anteriores
+   - "Métricas"     : dashboard de rendimiento del sistema
+   - "Patches"      : listado de correcciones activas
+
+Si la GUI muestra "⚠️ Error de importación", instala las
+dependencias (paso 1.2) y vuelve a intentarlo.
+
+
+============================================================
+3. PASO A PASO: CÓMO BUSCAR PICKS GANADORES
+============================================================
+
+------------------------------------------------------------
+3.1 SELECCIÓN DEL PARTIDO (¿qué partido analizar?)
+------------------------------------------------------------
+
+El sistema CG-0P analiza mercados SECUNDARIOS de fútbol:
+   - Corners por equipo (Over/Under)
+   - Corners primera mitad
+   - Tarjetas (amarillas y rojas)
+   - BTTS (ambos equipos marcan)
+   - Goles alternativos (Under 5.5, 6.5, etc.)
+
+CRITERIOS PARA ELEGIR UN PARTIDO:
+   ✔ Ligas con datos históricos disponibles (Premier League,
+     La Liga, Bundesliga, Serie A, Ligue 1, etc.)
+   ✔ Partido que se juega en las próximas 2-6 horas
+   ✔ Datos del árbitro verificables (SofaScore, Fbref)
+   ✔ Cuotas disponibles en Pinnacle o Ecuabet
+
+PARTIDOS A EVITAR:
+   ✘ Partidos de copas menores o ligas desconocidas
+   ✘ Partidos donde no sabes quién arbitra
+   ✘ Partidos con muchas bajas sin confirmar
+
+------------------------------------------------------------
+3.2 RECOPILACIÓN DE DATOS (antes de abrir la GUI)
+------------------------------------------------------------
+
+Antes de abrir la GUI, reúne estos datos del partido.
+Fuentes recomendadas: SofaScore (principal), Fbref, WhoScored.
+
+DATOS DE CORNERS (SofaScore → Estadísticas → Corners):
+   • Corners promedio por partido (temporada) de cada equipo
+   • Corners promedio jugando en casa (local) o fuera (visitante)
+   • Corners concedidos por cada equipo por partido
+   • Corners en los últimos 5 partidos de cada equipo
+
+DATOS xG / BTTS (Fbref o Understat):
+   • xG (expected goals) del equipo local esta temporada
+   • xG del equipo visitante esta temporada
+   • xGA (expected goals against) de cada equipo
+   • % partidos BTTS (ambos marcan) en últimos 10 partidos
+   • % Clean Sheets (sin goles en contra) de cada equipo
+
+DATOS DEL ÁRBITRO (SofaScore → partido → árbitro):
+   CRÍTICO: El árbitro es fundamental para el módulo de tarjetas.
+   • Nombre del árbitro
+   • Amarillas por partido (promedio últimos 20+ partidos)
+   • Rojas por partido
+   • Penales por partido
+   Si el árbitro no está confirmado → desactiva el módulo F (tarjetas)
+
+DATOS DE CONTEXTO:
+   • ¿Hay lesiones importantes? (cambios en rotación)
+   • ¿Algún equipo tiene racha perdedora? (mala forma)
+   • ¿El DT está bajo presión o puede ser destituido?
+   • ¿Es un partido de rivalidad (derby)?
+   • ¿Algún equipo no tiene motivación (ya campeón o descendido)?
+   • ¿Qué calidad tiene la plantilla del visitante?
+     (top 50% de la liga = "calidad alta")
+
+------------------------------------------------------------
+3.3 INGRESO DE DATOS EN LA GUI
+------------------------------------------------------------
+
+Abre la GUI y ve a la pestaña "Análisis PRE".
+
+SECCIÓN "INFORMACIÓN BÁSICA":
+   Liga       → Nombre de la liga (ej: "Premier League")
+   Equipo Local → Nombre exacto del equipo local
+   Equipo Visitante → Nombre del equipo visitante
+   Fecha partido → Fecha en formato DD/MM/YYYY
+
+SECCIÓN "DATOS DE CORNERS":
+   CK Avg Local (temporada)    → Corners por partido del local esta temporada
+                                  Ejemplo: si tiene 5.2 corners/partido → escribe 5.2
+   CK Avg Visitante (temporada)→ Igual pero del visitante
+   CK Concedidos Local/p       → Cuántos corners RECIBE el local por partido
+   CK Concedidos Visitante/p   → Cuántos corners RECIBE el visitante por partido
+   CK Local últimos 5          → Promedio de corners del local en sus últimos 5 partidos
+   CK Visitante últimos 5      → Igual para el visitante
+
+SECCIÓN "xG / BTTS":
+   xG Local         → Expected Goals del local (ej: 1.35 = moderadamente atacante)
+   xG Visitante     → Expected Goals del visitante
+   xGA Local        → Expected Goals Against del local (cuánto le generan)
+   xGA Visitante    → Expected Goals Against del visitante
+   BTTS% Local      → Proporción de partidos donde ambos marcan (0.0 a 1.0)
+                       Ejemplo: 55% = escribe 0.55
+   BTTS% Visit.     → Igual para el visitante
+   CS% Local        → Proporción de clean sheets del local (0.0 a 1.0)
+   CS% Visitante    → Igual para el visitante
+
+SECCIÓN "ÁRBITRO":
+   IMPORTANTE: Solo ingresa datos si el árbitro está CONFIRMADO.
+   Árbitro: amarillas/p  → Promedio de tarjetas amarillas por partido
+   Árbitro: rojas/p      → Promedio de tarjetas rojas por partido
+   Árbitro: penales/p    → Promedio de penales por partido
+
+SECCIÓN "FLAGS Y CONTEXTO":
+   Prob. Gol < 20' Local    → Probabilidad de que el local marque antes del min 20
+                               Usa 0.20 como base si no tienes dato específico
+                               Si el equipo es muy agresivo al inicio: 0.30+
+   Prob. Gol < 20' Visit.   → Igual para el visitante
+   Racha perd. Visitante    → Cuántos partidos consecutivos perdiendo el visitante
+                               (0 si no tiene racha negativa)
+   % Calidad plantilla Visit.→ Qué percentil de calidad tiene el visitante
+                               50 = promedio de la liga, 70 = top, 30 = bajo
+
+SECCIÓN "OPCIONES" (checkboxes):
+   Árbitro verificado      → Marca si tienes datos del árbitro confirmados
+   DT Visit. bajo presión  → Marca si el DT del visitante puede ser destituido pronto
+   H2H competitivo en casa → Marca si el visitante suele competir bien en ese estadio
+   xG verificado           → Marca si los datos xG son de fuente verificada (Fbref)
+   Rivalidad/Urgencia      → Marca si es derby o partido de extrema urgencia para algún equipo
+   ProxyMode (no Pinnacle) → Marca si usas cuotas de Ecuabet u otra casa no-Pinnacle
+                              (aplica penalización de -1 pp automática)
+   Partido ajustado hasta 70' → Marca si proyectas un partido muy cerrado
+
+------------------------------------------------------------
+3.4 INGRESO DE CUOTAS
+------------------------------------------------------------
+
+SECCIÓN "CUOTAS (Over/Under)":
+   Ingresa las cuotas EXACTAS de las líneas disponibles.
+
+   Para cada mercado tienes dos campos: Over y Under.
+
+   Ejemplo para "CK Local Over/Under 4.5":
+   - Si la casa ofrece Local Over 4.5 @ 1.72 → escribe 1.72 en "CK Local Over"
+   - Si la casa ofrece Local Under 4.5 @ 2.10 → escribe 2.10 en "CK Local Under"
+
+   El número junto al campo (ej: "@4.5") es el UMBRAL (threshold).
+   Es la línea de referencia (Over/Under ese número).
+
+MERCADOS DISPONIBLES EN LA GUI:
+   CK Local Over/Under       → Corners del equipo local en todo el partido
+   CK Visit. Over/Under      → Corners del equipo visitante en todo el partido
+   1H CK Local Over/Under    → Corners del local en la PRIMERA MITAD
+   1H CK Visit. Over/Under   → Corners del visitante en la primera mitad
+   Total Tarjetas Over/Under → Tarjetas totales en el partido
+   BTTS Sí / BTTS No         → Si ambos equipos marcan o no
+
+REGLAS IMPORTANTES PARA CUOTAS:
+   • Cuota mínima aceptable: 1.40
+   • Cuota objetivo ideal: entre 1.55 y 1.85 (SmartMode)
+   • Si la cuota < 1.55: el sistema exige p >= 77% o edge >= 9 pp
+   • Si la cuota > 1.85: el sistema exige EV >= 0.030 y robustez = 5/5
+   • Si no tienes cuota para un mercado, deja el campo en 0
+
+FUENTE DE CUOTAS:
+   ✔ IDEAL: Pinnacle (cuotas más eficientes, referencia de mercado)
+   ✔ Si usas Ecuabet → activa "ProxyMode" → penalización de -1 pp
+   ✘ NUNCA: usar cuotas de webs de comparación sin verificar
+
+------------------------------------------------------------
+3.5 INTERPRETACIÓN DE RESULTADOS
+------------------------------------------------------------
+
+Cuando presionas "▶ ANALIZAR PARTIDO", el sistema ejecuta
+el pipeline completo de 7 pasos y muestra los resultados.
+
+RESULTADO "✅ PICK EJECUTAR":
+   El sistema encontró una apuesta con edge >= 7 pp y EV >= 0.030.
+   Muestra:
+   - Mercado: qué apostar (ej: "Brighton Under 4.5 CK @1.95")
+   - Stake: cuántas unidades apostar (1.0u o 0.5u si hay incertidumbre)
+   - Edge: ventaja en puntos porcentuales (7.0+ = buena)
+   - EV: valor esperado (0.030+ = positivo)
+   - Robustez: cuántos de 5 escenarios de estrés supera (4-5 = bueno)
+
+   ¿Qué hacer? → APOSTAR el stake indicado.
+
+RESULTADO "📋 PAPER-A":
+   Edge entre 4.0 y 6.9 pp. Insuficiente para apostar, pero se registra.
+   ¿Qué hacer? → NO apostar. Solo anotar para seguimiento.
+
+RESULTADO "❌ SIN PICKS EJECUTAR":
+   El sistema no encontró ventaja suficiente.
+   Muestra el mejor candidato que no pasó y por qué no pasó.
+   ¿Qué hacer? → PASS. No apostar. Buscar otro partido.
+
+RESULTADO "⚠️ CASI PICK":
+   Cumple edge y probabilidad pero la cuota es < 1.40.
+   ¿Qué hacer? → Monitorear. Si la cuota sube a >= 1.40, reevaluar.
+
+PANEL DE PICKS RÁPIDOS (arriba del análisis):
+   Muestra insignias de colores: verde = PICK, azul = CI del partido.
+   CI alto (4-5) = partido muy impredecible = más restricciones.
+
+SECCIÓN "DETALLE DEL ANÁLISIS":
+   Muestra el log completo del pipeline, incluyendo:
+   - ChaosIndex calculado y flags activos
+   - Mercados disponibles con devig aplicado
+   - Módulos evaluados y su decisión
+   - Patches aplicados y sus penalizaciones
+
+
+============================================================
+4. LOS 6 MÓDULOS DEL SISTEMA EXPLICADOS
+============================================================
+
+El sistema evalúa cada partido en hasta 6 módulos distintos.
+Cada módulo analiza un tipo específico de mercado.
+
+MÓDULO B — Team Corners FT (Prioridad 1)
+   ¿Qué analiza? Corners de UN equipo en el partido completo.
+   ¿Cuándo da pick? Cuando la Poisson del equipo muestra ventaja
+   mayor al 7 pp vs. la probabilidad implícita del mercado.
+   Kill-switch: Si el equipo tiene patrón "Favorito Clínico"
+   (marca temprano y administra) → PAPER automático.
+   Datos clave: corners promedio, corners concedidos por rival, H2H.
+
+MÓDULO C — Corners 1T Team (Prioridad 2)
+   ¿Qué analiza? Corners de la PRIMERA MITAD por equipo.
+   ¿Cuándo da pick? Cuando hay ventaja matemática demostrada
+   en corners de 1T (aprox. 42% de los corners FT).
+   Kill-switch especial (v1.2.7): Si el visitante está en racha
+   perdedora con plantilla de calidad → Under 1T = PAPER.
+   Datos clave: mismos que B pero focalizados en 1T.
+
+MÓDULO D — Hándicap Corners (Prioridad 4)
+   ¿Qué analiza? Líneas de hándicap de corners entre equipos.
+   ¿Cuándo da pick? Solo con dominancia unilateral CLARA
+   (diferencia de 2+ corners esperados entre equipos).
+   Kill-switch: Si no hay dominancia clara → PAPER.
+
+MÓDULO F — Tarjetas (Prioridad 3)
+   ¿Qué analiza? Total de tarjetas, tarjetas por equipo,
+   primera tarjeta, tarjeta roja Sí/No.
+   ¿Cuándo da pick? Cuando el perfil del árbitro + perfil de
+   los equipos generan una ventaja clara.
+   Kill-switch especial (v1.2.6): Si el partido proyecta
+   muchos goles (partido abierto) → -2.5 pp al Over tarjetas.
+   Datos clave: árbitro, tarjetas promedio de cada equipo, rivalidad.
+
+MÓDULO G — BTTS (Prioridad 5)
+   ¿Qué analiza? Si ambos equipos marcarán o no.
+   ¿Cuándo da pick? Cuando xG de ambos equipos + historial
+   BTTS muestran ventaja demostrable.
+   Kill-switch: Sin xG verificado → PAPER siempre.
+   Datos clave: xG, xGA, % BTTS últimos 10, clean sheets, H2H BTTS.
+
+MÓDULO A — Goles Alt Totals (Prioridad 6, Limitado)
+   ¿Qué analiza? Under de goles totales en líneas altas
+   (Under 5.5 goles, Under 6.5 goles).
+   ¿Cuándo da pick? Solo cuando CI <= 2 y p_under >= 72%.
+   Kill-switch: CI >= 4 → NUNCA Under 4.5.
+   Restricción: Solo elegible U5.5 o más altas.
+
+
+============================================================
+5. CÓMO INTERPRETAR EL CHAOSINDEX (CI)
+============================================================
+
+El ChaosIndex (CI) mide cuánta volatilidad e imprevisibilidad
+tiene un partido. Va de 0 a 5.
+
+Cada uno de estos 5 flags suma 1 punto al CI:
+
+   EG (Early Goal): Prob >= 25% de gol antes del minuto 20.
+      → Partidos con equipos muy agresivos al inicio.
+
+   LS (Late Surge): Equipos con tendencia a goles tardíos.
+      → Partidos que pueden cambiar en los últimos 20 minutos.
+
+   ABP (Set Pieces): Equipo con amenaza real de balón parado.
+      → Corners y faltas peligrosas que pueden generar goles inesperados.
+
+   REF_VAR: Árbitro con alto ratio de penales o rojas.
+      → El árbitro puede cambiar el partido drásticamente.
+
+   OG (Open Game): Partido táctico "de ida y vuelta".
+      → Muchas transiciones, goles probables en ambos arcos.
+
+INTERPRETACIÓN DEL CI:
+   CI = 0-1: Partido predecible → mejores condiciones para picks
+             Módulos en orden B → C → D → F → G → A
+
+   CI = 2-3: Moderado → mayor cautela
+             Módulos en orden A → B → C → F → D → G
+             No apostar unders finos (CI >= 3)
+
+   CI = 4-5: Partido muy impredecible
+             Solo módulo A (ultra-colchón) o PAPER automático
+             NUNCA apostar Under 4.5 goles con CI >= 4
+
+
+============================================================
+6. CÓMO RESOLVER PICKS (REGISTRAR RESULTADOS)
+============================================================
+
+Después de que el partido termina, debes registrar el resultado.
+Esto permite al sistema aprender y mejorar.
+
+PASO 6.1 — Ir a la pestaña "Historial"
+   Verás la tabla "PICKS PENDIENTES DE RESOLVER" con todos
+   los picks que hiciste y que aún no tienen resultado.
+
+PASO 6.2 — Seleccionar el pick en la tabla
+   Haz clic en el pick que quieres resolver.
+
+PASO 6.3 — Llenar el panel "RESOLVER PICK SELECCIONADO":
+   Resultado (W/L/V):
+      W = Win (ganaste la apuesta) = HIT
+      L = Loss (perdiste la apuesta) = MISS
+      V = Void (la apuesta fue anulada / push)
+
+   Stake apostado: cuántas unidades apostaste realmente
+
+   Cuota tomada: la cuota que obtuviste al apostar
+
+   Corners local/visitante: el resultado real de corners
+   (para calibración del sistema)
+
+   Tarjetas total: total de tarjetas en el partido
+
+   Notas: escribe observaciones del partido
+   (ej: "Brighton marcó en el min 8 y administró")
+
+PASO 6.4 — Presionar "✓ Guardar Resultado"
+   El sistema calcula el P&L automáticamente:
+   - W: ganancia = stake × (cuota - 1)
+   - L: pérdida = -stake
+   - V: 0
+
+PASO 6.5 — El sistema actualiza métricas
+   Las métricas en la pestaña "Métricas" se actualizarán.
+
+
+============================================================
+7. CÓMO LEER LAS MÉTRICAS
+============================================================
+
+Ve a la pestaña "Métricas" para ver el rendimiento global.
+
+TARJETAS DE MÉTRICAS GLOBALES:
+   Total Picks    → Número total de picks ejecutados y resueltos
+   Win Rate       → Porcentaje de aciertos (meta: >= 55%)
+   ROI            → Return on Investment (meta: > 0%)
+   P&L Total      → Ganancias/pérdidas totales en unidades
+   Edge Promedio  → Edge promedio de los picks ejecutados
+
+TABLA "RENDIMIENTO POR MÓDULO":
+   Muestra el rendimiento individual de cada módulo (B, C, D, F, G, A).
+   NOTA: Solo fiable con >= 15 picks por módulo.
+
+   Brier Score: mide la calidad de las predicciones probabilísticas.
+      < 0.15  = Excelente calibración
+      0.15-0.25 = Calibración aceptable
+      > 0.25  = Necesita recalibración
+
+CURVA DE BANKROLL:
+   Muestra la evolución de las ganancias/pérdidas en el tiempo.
+   Verde = en positivo, Rojo = en negativo.
+
+ALERTA ANTI-RECENCY:
+   Si hay 3 MISS consecutivos, el sistema te avisa.
+   Esto NO significa que debes bajar los umbrales.
+   Significa que debes revisar si los partidos recientes
+   tenían alguna señal que el sistema no detectó.
+
+
+============================================================
+8. QUÉ SON LOS PATCHES Y CÓMO FUNCIONAN
+============================================================
+
+Los patches son correcciones incrementales al sistema.
+Se generan cuando ocurre un MISS (apuesta perdida) por una
+razón sistémica que el sistema debió detectar pero no detectó.
+
+PROCESO DE GENERACIÓN DE UN PATCH:
+   1. Ocurre un MISS en un pick ejecutado
+   2. Se analiza post-partido: ¿fue varianza o falla del sistema?
+   3. Si fue falla sistémica: ¿hay un patrón que se repite?
+   4. Se define la regla: condición → penalización en pp
+   5. Se verifica retroactivamente en el historial
+   6. Se integra permanentemente al sistema
+
+PATCHES ACTIVOS (v1.2.7):
+   FC_Bidireccional (2026-02-20):
+      Si un equipo marca antes del min 30 y administra con <= 4 corners,
+      se activa FC → Over corners de ese equipo = PAPER.
+      Origen: Brest marcó temprano y generó solo 3 corners.
+
+   G1_Simetrico (2026-02-20):
+      El escenario de gol temprano (G1) se evalúa en AMBAS
+      direcciones: si el equipo apostado marca Y si el rival marca.
+
+   EG_Home_Penalizacion (2026-02-20):
+      Si prob. de gol < 20' >= 25% → -4 pp al edge de Over corners.
+
+   P-G1-1T (v1.2.4):
+      Si prob. de gol antes del min 35 >= 30% → Under 1T del equipo
+      que quedaría perdiendo = PAPER automático.
+
+   P-HT70-F (v1.2.5):
+      Partido cerrado hasta el 70'+ con árbitro estricto y equipo agresivo
+      → +1.5 pp al Over tarjetas (más faltas tácticas al final).
+
+   P-OPENCARD-F (v1.2.6):
+      Partido abierto (muchos goles esperados) → -2.5 pp al Over tarjetas.
+      Los partidos fluidos generan menos faltas.
+      Origen: Lens vs Monaco, partido abierto con pocas tarjetas.
+
+   P-VSURGE1H-C (v1.2.7):
+      Visitante desesperado con talento concentra esfuerzo en 1H → -4 pp
+      al Under 1H corners del visitante.
+      Origen: Brighton (racha 3 derrotas) dominó 1H vs Brentford.
+
+REGLA FUNDAMENTAL:
+   Los patches NUNCA se eliminan. Se acumulan.
+   Si hay conflicto entre patches, gana el más restrictivo.
+
+
+============================================================
+9. REGLAS OPERATIVAS CRÍTICAS (NO IGNORAR)
+============================================================
+
+1. DEVIG ES OBLIGATORIO
+   El sistema siempre calcula el margen de la casa (devig) antes
+   de comparar contra su modelo. Sin devig → no evaluable.
+   Si no tienes cuota Over Y Under del mismo mercado → SKIP.
+
+2. DOS INDICADORES CONVERGENTES (Two-Key Rule)
+   Para el módulo B (corners), se necesitan al menos 2 indicadores
+   que apunten en la misma dirección:
+   - Lambda > umbral (Poisson lo indica)
+   - Forma reciente confirma
+   - H2H confirma
+   Si solo hay 1 indicador → PAPER automático.
+
+3. NO FORZAR PICKS
+   Si el sistema dice PASS, la respuesta es PASS.
+   Nunca bajes los umbrales porque "te gusta el partido".
+   Un PASS bien fundamentado es mejor que un pick dudoso.
+
+4. NO CHASE LOSSES
+   Después de un MISS, NO aumentes los stakes ni relajes umbrales.
+   El sistema tiene un mecanismo anti-recency: 3 MISS consecutivos
+   activan una revisión, no una reacción emocional.
+
+5. VERIFICAR CUOTAS DEL SCREENSHOT
+   Solo usa las cuotas que TIENES VISIBLES en tu pantalla/cuenta.
+   NUNCA uses cuotas de webs de comparación sin verificar.
+   Error en cuotas = error en edge = pick potencialmente inválido.
+
+6. ÁRBITRO CONFIRMADO O SKIP
+   Si el árbitro no está confirmado, desactiva el módulo F.
+   En la GUI: deja los campos de árbitro en 0 y desactiva "Árbitro verificado".
+
+7. xG VERIFICADO O SKIP
+   Para el módulo G (BTTS), el xG debe ser de Fbref o Understat.
+   Si no está verificado, desactiva "xG verificado" en la GUI.
+
+8. SEPARAR 1H vs FT PARA VISITANTES
+   Patrón "Visitor Comfort Zone": visitante que va ganando se repliega
+   en 2H → produce 0 corners en 2H.
+   Siempre analiza 1H y FT por separado para el visitante.
+
+9. PROXYMODE
+   Si no usas Pinnacle como referencia de cuotas:
+   → Activa "ProxyMode (no Pinnacle)" en la GUI.
+   → El sistema aplica penalización de -1 pp automáticamente.
+   → La incertidumbre aumenta en +1.
+
+10. PICKS EJECUTAR VS. PAPER-A
+    EJECUTAR → apostar el stake indicado
+    PAPER-A  → NO apostar, solo registrar para seguimiento
+    PASS     → no hacer nada
+    Nunca conviertas un PAPER-A en apuesta porque "te convence".
+
+
+============================================================
+10. PREGUNTAS FRECUENTES
+============================================================
+
+P: ¿Qué significa "edge"?
+R: Edge es la ventaja matemática del sistema sobre la casa.
+   Edge = (probabilidad del sistema - probabilidad implícita del mercado) × 100
+   Edge = 7.5 pp significa que el sistema cree que hay 7.5% más de probabilidad
+   real que la que refleja la cuota. Eso es una ventaja significativa.
+
+P: ¿Por qué el sistema dice PASS cuando la cuota parece buena?
+R: Porque la cuota NO lo es todo. También se verifica:
+   - Edge mínimo (7 pp)
+   - EV positivo (>= 0.030)
+   - Robustez (>= 4/5 escenarios superados)
+   - Kill-switches por CI y flags activos
+   - Patches que pueden reducir el edge
+
+P: ¿Qué hago si la GUI muestra "Error de importación"?
+R: Ejecuta en terminal: pip install scipy numpy pandas
+   Luego vuelve a abrir la GUI.
+
+P: ¿El sistema es 100% preciso?
+R: No. El objetivo es tener edge matemático a largo plazo.
+   Incluso con pick correcto, el resultado individual puede ser MISS
+   (varianza normal). Lo importante es el rendimiento a largo plazo
+   con >= 15 picks por módulo para tener muestra estadística.
+
+P: ¿Puedo usar el módulo E (Total Corners FT)?
+R: No. El Módulo E fue eliminado porque el mercado de total corners
+   es demasiado eficiente y no genera edge consistente. El sistema
+   focaliza en corners POR EQUIPO (módulo B) donde hay más inefficiencia.
+
+P: ¿Qué es el Brier Score?
+R: Mide la calidad de las predicciones probabilísticas del sistema.
+   Si el sistema dice "80% de probabilidad" y gana el 80% de las veces
+   en condiciones similares, el Brier Score es bajo (bueno).
+   < 0.15 = excelente, 0.15-0.25 = aceptable, > 0.25 = necesita recalibración.
+
+P: ¿Cuántos picks necesito para ver resultados confiables?
+R: Mínimo 15 picks por módulo para estadísticas confiables.
+   Para el sistema global: mínimo 50 picks.
+   Con menos de 15 picks por módulo, el rendimiento puede fluctuar mucho.
+
+P: ¿Cómo sé si el sistema funciona bien?
+R: Señales positivas:
+   - Win rate >= 55% con >= 15 picks
+   - ROI > 0% con >= 30 picks
+   - Brier Score < 0.20
+   - Sin 3 MISS consecutivos frecuentes
+
+
+============================================================
+RESUMEN DE FLUJO RÁPIDO (CHECKLIST)
+============================================================
+
+□ 1. Elegir partido (liga conocida, árbitro confirmado)
+□ 2. Buscar datos en SofaScore (corners) y Fbref (xG)
+□ 3. Anotar datos del árbitro (amarillas, rojas, penales)
+□ 4. Abrir GUI: python gui_tkinter.py
+□ 5. Ingresar datos en pestaña "Análisis PRE"
+□ 6. Verificar checkboxes correctos (árbitro, xG, proxymode)
+□ 7. Ingresar cuotas EXACTAS del bookmaker
+□ 8. Presionar "▶ ANALIZAR PARTIDO"
+□ 9. Leer resultado:
+      ✅ EJECUTAR → apostar stake indicado
+      📋 PAPER-A → solo registrar, no apostar
+      ❌ PASS → buscar otro partido
+□ 10. Cuando termine el partido → resolver pick en "Historial"
+□ 11. Revisar métricas periódicamente
+
+
+============================================================
+ARQUITECTURA TÉCNICA (para desarrolladores)
+============================================================
+
+El sistema está organizado en:
+
+cg0p/
+├── config/
+│   ├── constants.py    → Parámetros globales (umbrales, stakes, etc.)
+│   ├── modules.py      → Configuración de los 6 módulos
+│   ├── patches.py      → Todos los patches activos
+│   └── patterns.py     → Patrones tácticos identificados
+├── core/
+│   ├── devig.py        → Eliminar margen de la casa
+│   ├── poisson.py      → Modelo de distribución Poisson
+│   ├── chaos_index.py  → Cálculo del ChaosIndex
+│   ├── stress_test.py  → Stress test G1-G5
+│   ├── decision.py     → Lógica de decisión final
+│   └── pipeline.py     → Pipeline completo de 7 pasos
+├── modules/
+│   ├── module_b.py     → Team Corners FT
+│   ├── module_c.py     → Corners 1T
+│   ├── module_d.py     → Hándicap Corners
+│   ├── module_f.py     → Tarjetas
+│   ├── module_g.py     → BTTS
+│   └── module_a.py     → Goles Alt Totals
+├── tracking/
+│   ├── history.py      → Base de datos SQLite de picks
+│   ├── metrics.py      → Cálculo de métricas
+│   └── brier.py        → Brier Score para calibración
+└── output/
+    └── formatter.py    → Formateo de salida
+
+gui_tkinter.py           → Interfaz gráfica completa
+INSTRUCCIONES.txt        → Este archivo
+
+
+============================================================
+FIN DE INSTRUCCIONES — CG-0P v1.2.7
+============================================================
