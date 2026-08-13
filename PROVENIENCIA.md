@@ -1,7 +1,7 @@
-# Procedencia y polÃ­tica de historial
+# Procedencia y política de historial
 
 Proyecto: Soccer Edge System
-ConsolidaciÃ³n: 12 de agosto de 2026
+Consolidación: 12 de agosto de 2026
 Rama oficial: main
 Ramas de variantes: codex/legacy-apuestas-auto-v3
 
@@ -11,10 +11,10 @@ Sistema predictivo y paquete cg0p de febrero de 2026; prototipo apuestas_auto_v3
 
 ## Criterio aplicado
 
-Los commits creados durante esta consolidaciÃ³n usan su fecha real de ejecuciÃ³n. No se inventaron autores, fechas ni contribuciones antiguas. Cuando fue necesario retirar informaciÃ³n sensible, el historial anterior se guardÃ³ como bundle Git verificado fuera de esta carpeta y la lÃ­nea pÃºblica se reconstruyÃ³ con una explicaciÃ³n explÃ­cita en el mensaje del commit.
+Los commits creados durante esta consolidación usan su fecha real de ejecución. No se inventaron autores, fechas ni contribuciones antiguas. Cuando fue necesario retirar información sensible, el historial anterior se guardó como bundle Git verificado fuera de esta carpeta y la línea pública se reconstruyó con una explicación explícita en el mensaje del commit.
 
-## Exclusiones de publicaciÃ³n
+## Exclusiones de publicación
 
 Clave SharpAPI, bases, datos de entrenamiento, modelo serializado, resultados y reportes.
 
-Los ejemplos usan valores reservados o dominios .example. Las credenciales reales deben configurarse Ãºnicamente en variables de entorno, PropertiesService o almacenes locales ignorados por Git.
+Los ejemplos usan valores reservados o dominios .example. Las credenciales reales deben configurarse únicamente en variables de entorno, PropertiesService o almacenes locales ignorados por Git.
