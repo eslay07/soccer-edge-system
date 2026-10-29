@@ -1,104 +1,64 @@
-# ⚽ SOCCER EDGE SYSTEM
+# Soccer Edge System
 
-Sistema de análisis de apuestas con detección de edge, aprendizaje continuo y exportación de reportes.
+**Proyecto experimental en Python para integrar fuentes de datos deportivos, organizar un recorrido de análisis y conservar resultados en SQLite.** Su valor de portafolio está en la adquisición de datos, la separación de componentes, la interfaz y el seguimiento del resultado; no acredita rentabilidad ni precisión predictiva.
 
----
+[Lectura de portafolio y evidencia](PORTFOLIO.md) · [Perfil del autor](https://github.com/eslay07)
 
-## 📦 INSTALACIÓN
+## Alcance actual
 
-```bash
-pip install -r requirements.txt
+El repositorio contiene una entrada de consola, una interfaz Tkinter y un paquete `cg0p` con configuración, módulos y funciones de cálculo. También conserva archivos de compatibilidad de versiones anteriores.
+
+La presencia de fórmulas, modelos y parámetros no demuestra que el sistema produzca decisiones correctas. La validación estadística, la calidad de la fuente y la evaluación fuera de muestra deben estudiarse por separado. No se presentan ganancias ni tasas de acierto como resultados verificados.
+
+## Componentes que se pueden revisar
+
+| Componente | Evidencia |
+| --- | --- |
+| Entrada de consola | [main.py](main.py) |
+| Interfaz local | [gui_tkinter.py](gui_tkinter.py) |
+| Configuración centralizada | [cg0p/config/settings.py](cg0p/config/settings.py) |
+| Recorrido de análisis | [cg0p/core/pipeline.py](cg0p/core/pipeline.py) |
+| Persistencia | [database.py](database.py) |
+| Datos y variables de análisis | [features.py](features.py) |
+| Dependencias | [requirements.txt](requirements.txt) |
+
+## Preparar el entorno
+
+Use un entorno virtual independiente e instale las dependencias del repositorio:
+
+```powershell
+py -3.12 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
 
----
+La configuración actual está en `cg0p/config/settings.py`; `config.py` reexporta valores por compatibilidad. La clave de la fuente configurada se lee desde la variable de entorno `SHARP_API_KEY`. No debe pegarse una clave real en el código ni publicarse un archivo de entorno con credenciales.
 
-## ⚙️ CONFIGURACIÓN (3 pasos)
+La configuración y disponibilidad de una API externa deben comprobarse con su proveedor. Esta documentación no garantiza el acceso a un plan o endpoint concreto.
 
-### 1. Obtener API Key gratuita
-→ Regístrate en: https://the-odds-api.com
-→ Plan gratuito: 500 requests/mes (suficiente para probar)
+## Recorridos disponibles
 
-### 2. Pegar tu API Key en config.py
-```python
-API_KEY = "aquí_tu_api_key"
+```powershell
+.\.venv\Scripts\python.exe gui_tkinter.py
+.\.venv\Scripts\python.exe main.py
 ```
 
-### 3. Ajustar parámetros (opcional)
-En `config.py`:
-- `EDGE_MINIMO = 3.5`      # % mínimo para que sea PICK (no PASS)
-- `KELLY_FRACCION = 0.25`  # conservador: 25% del Kelly
-- `BANKROLL = 1000`        # tu bankroll en la moneda que uses
-- `VALUE_BET_MAXIMO = 4.0` # filtra longshots sin base estadística
+La entrada de consola puede consultar servicios y escribir resultados locales; revise la configuración antes de ejecutarla. La revisión documental no ejecutó consultas, apuestas ni transacciones reales.
 
----
+## Qué demuestra como proyecto técnico
 
-## 🚀 USO
+- Separación entre configuración, adquisición, cálculo, interfaz y persistencia.
+- Manejo de resultados y estados en una base local.
+- Necesidad de distinguir el cálculo implementado de su validación estadística.
+- Evolución de una entrada simple hacia una estructura por paquetes y componentes.
 
-### Correr análisis completo
-```bash
-python main.py
-```
-→ Descarga odds de todas las ligas configuradas
-→ Calcula edge para cada partido/selección
-→ Imprime PICK 🟢 o PASS 🔴 con justificación
-→ Genera imagen PNG del reporte en /reportes/
-→ Guarda todo en la base de datos
+## Límites y siguientes pasos
 
-### Resolver picks pasados (actualizar resultado)
-```bash
-python main.py resolver
-```
-→ Muestra picks pendientes
-→ Ingresas resultado (W/L/P)
-→ El sistema calcula P&L y actualiza la calibración
+- Verificar los contratos y la disponibilidad de las fuentes de datos.
+- Incorporar conjuntos de datos sintéticos y pruebas deterministas para cada componente.
+- Medir rendimiento y errores antes de atribuir mejoras al modelo.
+- Documentar las versiones de compatibilidad y retirar rutas obsoletas cuando exista cobertura de pruebas.
+- Mantener fuera de GitHub claves, bases locales, reportes personales y registros de uso.
 
----
+## Autor
 
-## 📊 ESTRUCTURA DE ARCHIVOS
-
-```
-soccer_edge_system/
-│
-├── config.py         # ← Parámetros del sistema (empieza aquí)
-├── scraper.py        # Motor de odds + detección de edge
-├── database.py       # SQLite: picks, resultados, aprendizaje
-├── reportes.py       # Generador de imágenes PNG
-├── main.py           # Punto de entrada
-├── requirements.txt
-│
-├── soccer_edge.db    # Base de datos (se crea automáticamente)
-└── reportes/         # Imágenes generadas (se crea automáticamente)
-```
-
----
-
-## 🧠 APRENDIZAJE CONTINUO
-
-Cada vez que resuelves un pick con `python main.py resolver`, el sistema:
-1. Registra el resultado real vs el edge calculado
-2. Acumula datos de calibración por liga y mercado
-3. Las estadísticas globales mejoran su precisión con el tiempo
-
-Próximas versiones incluirán re-entrenamiento automático con `scikit-learn`.
-
----
-
-## 📈 LÓGICA DE PICK / PASS
-
-```
-Cuota < 1.05          → PASS (sin valor)
-Cuota > 4.00          → PASS (longshot sin base)
-Edge < 3.5%           → PASS ("No hay apuesta con edge suficiente. Se pasa.")
-Prob. real < 20%      → PASS (demasiada incertidumbre)
-Todo lo anterior OK   → ✅ PICK con stake Kelly fraccionado
-```
-
----
-
-## 🔧 PRÓXIMOS MÓDULOS
-
-- [ ] Dashboard Streamlit con curva de bankroll
-- [ ] Modelo ML propio (XGBoost) para probabilidades
-- [ ] Detección de steam moves (movimiento de línea)
-- [ ] Alertas por Telegram cuando aparece un pick
-- [ ] Scheduler automático cada 2h
+**Jimmy Toapanta** · [LinkedIn](https://www.linkedin.com/in/jimmy-toapanta-950a441b8/) · [Portafolio](https://github.com/eslay07)
